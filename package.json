@@ -5,9 +5,10 @@
   "main": "build/server.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "start": "node build/server.js"
-  },
+  "dev": "ts-node-dev --respawn --transpile-only server.ts"
+  "build": "tsc --outDir build",
+  "start": "node build/server.js"
+},
   "keywords": [],
   "author": "elecruz-server",
   "license": "ISC",
