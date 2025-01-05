@@ -7,7 +7,7 @@ services:
     buildCommand: npm run build
     startCommand: npm run start
     runtime: node
-    branch: main # Update this to the branch you want to deploy
+    branch: develop # Update this to the branch you want to deploy
     region: oregon # Change region if needed, e.g., "us-east"
     autoDeploy: true
     envVars:
