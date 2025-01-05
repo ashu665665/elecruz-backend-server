@@ -16,6 +16,7 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
+    console.log(phone_number);
     const { phone_number } = req.body;
     try {
       await client.verify.v2
