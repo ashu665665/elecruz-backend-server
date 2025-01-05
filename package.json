@@ -6,12 +6,10 @@
   "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "build": "tsc",
-    "start": "node build/server.js",
-    "prod": "npm run build && npm start"
+    "start": "node build/server.js"
   },
   "keywords": [],
-  "author": "shahriar sajeeb",
+  "author": "elecruz-server",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.17.0",
