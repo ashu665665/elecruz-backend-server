@@ -5,16 +5,17 @@
   "main": "build/server.js",
   "type": "commonjs",
   "scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only server.ts",
-  "build": "tsc --outDir build",
-  "start": "node build/server.js"
-},
+    "dev": "ts-node-dev --respawn --transpile-only server.ts",
+    "build": "tsc --outDir build",
+    "start": "node build/server.js"
+  },
   "keywords": [],
   "author": "elecruz-server",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.17.0",
     "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "ip": "^2.0.1",
