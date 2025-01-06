@@ -125,7 +125,7 @@ export const sendingOtpToEmail = async (
     );
     try {
       await nylas.messages.send({
-        identifier: process.env.USER_GRANT_ID!,
+        identifier: '9b9670a4-00a4-4a63-8609-2c14788a399a',
         requestBody: {
           to: [{ name: name, email: email }],
           subject: "Verify your email address!",
