@@ -5,8 +5,10 @@ import userRouter from "./routes/user.route";
 import Nylas from "nylas";
 import driverRouter from "./routes/driver.route";
 import healthcheckRouter from "./routes/healthcheck.route";
+import cors from 'cors';
 
 export const app = express();
+app.use(cors());
 
 export const nylas = new Nylas({
   apiKey: process.env.NYLAS_API_KEY!,
