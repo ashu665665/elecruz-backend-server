@@ -16,8 +16,8 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    console.log(phone_number);
     const { phone_number } = req.body;
+    console.log(phone_number);
     try {
       await client.verify.v2
         .services(process.env.TWILIO_SERVICE_SID!)

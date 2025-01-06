@@ -11,7 +11,7 @@ export const app = express();
 app.use(cors());
 
 export const nylas = new Nylas({
-  apiKey: process.env.NYLAS_API_KEY!,
+  apiKey: "nyk_v0_gbpyjidVkNEyM5QIWF6BxjeWVr6AsJLBDWhEPWwRRkAnqYDR5f1rLzaobHCxSomG",
   apiUri: "https://api.us.nylas.com",
 });
 
