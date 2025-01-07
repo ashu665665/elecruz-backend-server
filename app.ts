@@ -2,18 +2,12 @@ require("dotenv").config();
 import express, { NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route";
-import Nylas from "nylas";
 import driverRouter from "./routes/driver.route";
 import healthcheckRouter from "./routes/healthcheck.route";
 const cors = require("cors");
 
 export const app = express();
 app.use(cors());
-
-export const nylas = new Nylas({
-  apiKey: "nyk_v0_gbpyjidVkNEyM5QIWF6BxjeWVr6AsJLBDWhEPWwRRkAnqYDR5f1rLzaobHCxSomG",
-  apiUri: "https://api.us.nylas.com",
-});
 
 // body parser
 app.use(express.json({ limit: "50mb" }));

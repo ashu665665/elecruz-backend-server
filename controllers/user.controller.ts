@@ -3,11 +3,11 @@ import { NextFunction, Request, Response } from "express";
 import twilio from "twilio";
 import prisma from "../utils/prisma";
 import jwt from "jsonwebtoken";
-import { nylas } from "../app";
 import { sendToken } from "../utils/send-token";
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
+import { sendOTPtoMail } from "../utils/nylas-email-otp";
 
 // register new user
 export const registerUser = async (
@@ -61,7 +61,7 @@ export const verifyOtp = async (
           code: otp,
         });
 
-        console.log("verified")
+      console.log("verified")
       // is user exist
       const isUserExist = await prisma.user.findUnique({
         where: {
@@ -124,18 +124,7 @@ export const sendingOtpToEmail = async (
       }
     );
     try {
-      await nylas.messages.send({
-        identifier: '9b9670a4-00a4-4a63-8609-2c14788a399a',
-        requestBody: {
-          to: [{ name: name, email: email }],
-          subject: "Verify your email address!",
-          body: `
-          <p>Hi ${name},</p>
-      <p>Your Elecruz verification code is ${otp}. If you didn't request for this OTP, please ignore this email!</p>
-      <p>Thanks,<br>Elecruz Team</p>
-          `,
-        },
-      });
+      sendOTPtoMail(name, otp, email);
       res.status(201).json({
         success: true,
         token,
@@ -150,8 +139,7 @@ export const sendingOtpToEmail = async (
   } catch (error) {
     console.log(error);
   }
-};
-
+}
 // verifying email otp
 export const verifyingEmail = async (
   req: Request,

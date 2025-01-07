@@ -4,10 +4,10 @@ import twilio from "twilio";
 import prisma from "../utils/prisma";
 import jwt from "jsonwebtoken";
 import { sendToken } from "../utils/send-token";
-import { nylas } from "../app";
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
+import { sendOTPtoMail } from "../utils/nylas-email-otp";
 
 // sending otp to driver phone number
 export const sendingOtpToPhone = async (
@@ -158,18 +158,7 @@ export const sendingOtpToEmail = async (req: Request, res: Response) => {
       }
     );
     try {
-      await nylas.messages.send({
-        identifier: process.env.USER_GRANT_ID!,
-        requestBody: {
-          to: [{ name: name, email: email }],
-          subject: "Verify your email address!",
-          body: `
-            <p>Hi ${name},</p>
-        <p>Your Elecruz verification code is ${otp}. If you didn't request for this OTP, please ignore this email!</p>
-        <p>Thanks,<br>Elecruz Team</p>
-            `,
-        },
-      });
+      sendOTPtoMail(name, otp, email)
       res.status(201).json({
         success: true,
         token,
@@ -284,7 +273,7 @@ export const updateDriverStatus = async (req: any, res: Response) => {
 export const getDriversById = async (req: Request, res: Response) => {
   try {
     const { ids } = req.query as any;
-    console.log(ids,'ids')
+    console.log(ids, 'ids')
     if (!ids) {
       return res.status(400).json({ message: "No driver IDs provided" });
     }
