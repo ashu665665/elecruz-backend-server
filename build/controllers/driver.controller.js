@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -9,20 +18,18 @@ const twilio_1 = __importDefault(require("twilio"));
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const send_token_1 = require("../utils/send-token");
-const app_1 = require("../app");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = (0, twilio_1.default)(accountSid, authToken, {
-    lazyLoading: true,
-});
+const client = (0, twilio_1.default)(accountSid, authToken);
+const nylas_email_otp_1 = require("../utils/nylas-email-otp");
 // sending otp to driver phone number
-const sendingOtpToPhone = async (req, res, next) => {
+const sendingOtpToPhone = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { phone_number } = req.body;
         console.log(phone_number);
         try {
-            await client.verify.v2
-                ?.services(process.env.TWILIO_SERVICE_SID)
+            yield client.verify.v2
+                .services(process.env.TWILIO_SERVICE_SID)
                 .verifications.create({
                 channel: "sms",
                 to: phone_number,
@@ -44,20 +51,22 @@ const sendingOtpToPhone = async (req, res, next) => {
             success: false,
         });
     }
-};
+});
 exports.sendingOtpToPhone = sendingOtpToPhone;
 // verifying otp for login
-const verifyPhoneOtpForLogin = async (req, res, next) => {
+const verifyPhoneOtpForLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { phone_number, otp } = req.body;
+        console.log(phone_number);
+        console.log(otp);
         try {
-            await client.verify.v2
+            yield client.verify.v2
                 .services(process.env.TWILIO_SERVICE_SID)
                 .verificationChecks.create({
                 to: phone_number,
                 code: otp,
             });
-            const driver = await prisma_1.default.driver.findUnique({
+            const driver = yield prisma_1.default.driver.findUnique({
                 where: {
                     phone_number,
                 },
@@ -78,20 +87,22 @@ const verifyPhoneOtpForLogin = async (req, res, next) => {
             success: false,
         });
     }
-};
+});
 exports.verifyPhoneOtpForLogin = verifyPhoneOtpForLogin;
 // verifying phone otp for registration
-const verifyPhoneOtpForRegistration = async (req, res, next) => {
+const verifyPhoneOtpForRegistration = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("here");
         const { phone_number, otp } = req.body;
+        console.log("here");
         try {
-            await client.verify.v2
+            yield client.verify.v2
                 .services(process.env.TWILIO_SERVICE_SID)
                 .verificationChecks.create({
                 to: phone_number,
                 code: otp,
             });
-            await (0, exports.sendingOtpToEmail)(req, res);
+            yield (0, exports.sendingOtpToEmail)(req, res);
         }
         catch (error) {
             console.log(error);
@@ -107,10 +118,10 @@ const verifyPhoneOtpForRegistration = async (req, res, next) => {
             success: false,
         });
     }
-};
+});
 exports.verifyPhoneOtpForRegistration = verifyPhoneOtpForRegistration;
 // sending otp to email
-const sendingOtpToEmail = async (req, res) => {
+const sendingOtpToEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, country, phone_number, email, vehicle_type, registration_number, registration_date, driving_license, vehicle_color, rate, } = req.body;
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -133,18 +144,7 @@ const sendingOtpToEmail = async (req, res) => {
             expiresIn: "5m",
         });
         try {
-            await app_1.nylas.messages.send({
-                identifier: process.env.USER_GRANT_ID,
-                requestBody: {
-                    to: [{ name: name, email: email }],
-                    subject: "Verify your email address!",
-                    body: `
-            <p>Hi ${name},</p>
-        <p>Your Elecruz verification code is ${otp}. If you didn't request for this OTP, please ignore this email!</p>
-        <p>Thanks,<br>Elecruz Team</p>
-            `,
-                },
-            });
+            (0, nylas_email_otp_1.sendOTPtoMail)(name, otp, email);
             res.status(201).json({
                 success: true,
                 token,
@@ -161,10 +161,10 @@ const sendingOtpToEmail = async (req, res) => {
     catch (error) {
         console.log(error);
     }
-};
+});
 exports.sendingOtpToEmail = sendingOtpToEmail;
 // verifying email otp and creating driver account
-const verifyingEmailOtp = async (req, res) => {
+const verifyingEmailOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { otp, token } = req.body;
         const newDriver = jsonwebtoken_1.default.verify(token, process.env.EMAIL_ACTIVATION_SECRET);
@@ -175,7 +175,7 @@ const verifyingEmailOtp = async (req, res) => {
             });
         }
         const { name, country, phone_number, email, vehicle_type, registration_number, registration_date, driving_license, vehicle_color, rate, } = newDriver.driver;
-        const driver = await prisma_1.default.driver.create({
+        const driver = yield prisma_1.default.driver.create({
             data: {
                 name,
                 country,
@@ -198,10 +198,10 @@ const verifyingEmailOtp = async (req, res) => {
             message: "Your otp is expired!",
         });
     }
-};
+});
 exports.verifyingEmailOtp = verifyingEmailOtp;
 // get logged in driver data
-const getLoggedInDriverData = async (req, res) => {
+const getLoggedInDriverData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const driver = req.driver;
         res.status(201).json({
@@ -212,13 +212,13 @@ const getLoggedInDriverData = async (req, res) => {
     catch (error) {
         console.log(error);
     }
-};
+});
 exports.getLoggedInDriverData = getLoggedInDriverData;
 // updating driver status
-const updateDriverStatus = async (req, res) => {
+const updateDriverStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { status } = req.body;
-        const driver = await prisma_1.default.driver.update({
+        const driver = yield prisma_1.default.driver.update({
             where: {
                 id: req.driver.id,
             },
@@ -238,10 +238,10 @@ const updateDriverStatus = async (req, res) => {
             message: error.message,
         });
     }
-};
+});
 exports.updateDriverStatus = updateDriverStatus;
 // get drivers data with id
-const getDriversById = async (req, res) => {
+const getDriversById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { ids } = req.query;
         console.log(ids, 'ids');
@@ -250,7 +250,7 @@ const getDriversById = async (req, res) => {
         }
         const driverIds = ids.split(",");
         // Fetch drivers from database
-        const drivers = await prisma_1.default.driver.findMany({
+        const drivers = yield prisma_1.default.driver.findMany({
             where: {
                 id: { in: driverIds },
             },
@@ -261,13 +261,13 @@ const getDriversById = async (req, res) => {
         console.error("Error fetching driver data:", error);
         res.status(500).json({ message: "Internal server error" });
     }
-};
+});
 exports.getDriversById = getDriversById;
 // creating new ride
-const newRide = async (req, res) => {
+const newRide = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId, charge, status, currentLocationName, destinationLocationName, distance, } = req.body;
-        const newRide = await prisma_1.default.rides.create({
+        const newRide = yield prisma_1.default.rides.create({
             data: {
                 userId,
                 driverId: req.driver.id,
@@ -284,10 +284,11 @@ const newRide = async (req, res) => {
         console.log(error);
         res.status(500).json({ message: "Internal server error" });
     }
-};
+});
 exports.newRide = newRide;
 // updating ride status
-const updatingRideStatus = async (req, res) => {
+const updatingRideStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { rideId, rideStatus } = req.body;
         // Validate input
@@ -296,12 +297,12 @@ const updatingRideStatus = async (req, res) => {
                 .status(400)
                 .json({ success: false, message: "Invalid input data" });
         }
-        const driverId = req.driver?.id;
+        const driverId = (_a = req.driver) === null || _a === void 0 ? void 0 : _a.id;
         if (!driverId) {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
         // Fetch the ride data to get the rideCharge
-        const ride = await prisma_1.default.rides.findUnique({
+        const ride = yield prisma_1.default.rides.findUnique({
             where: {
                 id: rideId,
             },
@@ -313,7 +314,7 @@ const updatingRideStatus = async (req, res) => {
         }
         const rideCharge = ride.charge;
         // Update ride status
-        const updatedRide = await prisma_1.default.rides.update({
+        const updatedRide = yield prisma_1.default.rides.update({
             where: {
                 id: rideId,
                 driverId,
@@ -324,7 +325,7 @@ const updatingRideStatus = async (req, res) => {
         });
         if (rideStatus === "Completed") {
             // Update driver stats if the ride is completed
-            await prisma_1.default.driver.update({
+            yield prisma_1.default.driver.update({
                 where: {
                     id: driverId,
                 },
@@ -350,13 +351,14 @@ const updatingRideStatus = async (req, res) => {
             message: error.message,
         });
     }
-};
+});
 exports.updatingRideStatus = updatingRideStatus;
 // getting drivers rides
-const getAllRides = async (req, res) => {
-    const rides = await prisma_1.default.rides.findMany({
+const getAllRides = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const rides = yield prisma_1.default.rides.findMany({
         where: {
-            driverId: req.driver?.id,
+            driverId: (_a = req.driver) === null || _a === void 0 ? void 0 : _a.id,
         },
         include: {
             driver: true,
@@ -366,5 +368,5 @@ const getAllRides = async (req, res) => {
     res.status(201).json({
         rides,
     });
-};
+});
 exports.getAllRides = getAllRides;

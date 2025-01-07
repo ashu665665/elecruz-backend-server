@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -8,17 +17,18 @@ require("dotenv").config();
 const twilio_1 = __importDefault(require("twilio"));
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const app_1 = require("../app");
 const send_token_1 = require("../utils/send-token");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = (0, twilio_1.default)(accountSid, authToken);
+const nylas_email_otp_1 = require("../utils/nylas-email-otp");
 // register new user
-const registerUser = async (req, res, next) => {
+const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { phone_number } = req.body;
+        console.log(phone_number);
         try {
-            await client.verify.v2
+            yield client.verify.v2
                 .services(process.env.TWILIO_SERVICE_SID)
                 .verifications.create({
                 channel: "sms",
@@ -41,32 +51,33 @@ const registerUser = async (req, res, next) => {
             success: false,
         });
     }
-};
+});
 exports.registerUser = registerUser;
 // verify otp
-const verifyOtp = async (req, res, next) => {
+const verifyOtp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("Reached");
         const { phone_number, otp } = req.body;
         try {
-            await client.verify.v2
+            yield client.verify.v2
                 .services(process.env.TWILIO_SERVICE_SID)
                 .verificationChecks.create({
                 to: phone_number,
                 code: otp,
             });
+            console.log("verified");
             // is user exist
-            const isUserExist = await prisma_1.default.user.findUnique({
+            const isUserExist = yield prisma_1.default.user.findUnique({
                 where: {
                     phone_number,
                 },
             });
             if (isUserExist) {
-                await (0, send_token_1.sendToken)(isUserExist, res);
+                yield (0, send_token_1.sendToken)(isUserExist, res);
             }
             else {
                 // create account
-                const user = await prisma_1.default.user.create({
+                const user = yield prisma_1.default.user.create({
                     data: {
                         phone_number: phone_number,
                     },
@@ -92,10 +103,10 @@ const verifyOtp = async (req, res, next) => {
             success: false,
         });
     }
-};
+});
 exports.verifyOtp = verifyOtp;
 // sending otp to email
-const sendingOtpToEmail = async (req, res, next) => {
+const sendingOtpToEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, name, userId } = req.body;
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -111,18 +122,7 @@ const sendingOtpToEmail = async (req, res, next) => {
             expiresIn: "5m",
         });
         try {
-            await app_1.nylas.messages.send({
-                identifier: process.env.USER_GRANT_ID,
-                requestBody: {
-                    to: [{ name: name, email: email }],
-                    subject: "Verify your email address!",
-                    body: `
-          <p>Hi ${name},</p>
-      <p>Your Elecruz verification code is ${otp}. If you didn't request for this OTP, please ignore this email!</p>
-      <p>Thanks,<br>Elecruz Team</p>
-          `,
-                },
-            });
+            (0, nylas_email_otp_1.sendOTPtoMail)(name, otp, email);
             res.status(201).json({
                 success: true,
                 token,
@@ -139,10 +139,10 @@ const sendingOtpToEmail = async (req, res, next) => {
     catch (error) {
         console.log(error);
     }
-};
+});
 exports.sendingOtpToEmail = sendingOtpToEmail;
 // verifying email otp
-const verifyingEmail = async (req, res, next) => {
+const verifyingEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { otp, token } = req.body;
         const newUser = jsonwebtoken_1.default.verify(token, process.env.EMAIL_ACTIVATION_SECRET);
@@ -153,13 +153,13 @@ const verifyingEmail = async (req, res, next) => {
             });
         }
         const { name, email, userId } = newUser.user;
-        const user = await prisma_1.default.user.findUnique({
+        const user = yield prisma_1.default.user.findUnique({
             where: {
                 id: userId,
             },
         });
-        if (user?.email === null) {
-            const updatedUser = await prisma_1.default.user.update({
+        if ((user === null || user === void 0 ? void 0 : user.email) === null) {
+            const updatedUser = yield prisma_1.default.user.update({
                 where: {
                     id: userId,
                 },
@@ -168,7 +168,7 @@ const verifyingEmail = async (req, res, next) => {
                     email: email,
                 },
             });
-            await (0, send_token_1.sendToken)(updatedUser, res);
+            yield (0, send_token_1.sendToken)(updatedUser, res);
         }
     }
     catch (error) {
@@ -178,10 +178,10 @@ const verifyingEmail = async (req, res, next) => {
             message: "Your otp is expired!",
         });
     }
-};
+});
 exports.verifyingEmail = verifyingEmail;
 // get logged in user data
-const getLoggedInUserData = async (req, res) => {
+const getLoggedInUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = req.user;
         res.status(201).json({
@@ -192,13 +192,14 @@ const getLoggedInUserData = async (req, res) => {
     catch (error) {
         console.log(error);
     }
-};
+});
 exports.getLoggedInUserData = getLoggedInUserData;
 // getting user rides
-const getAllRides = async (req, res) => {
-    const rides = await prisma_1.default.rides.findMany({
+const getAllRides = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const rides = yield prisma_1.default.rides.findMany({
         where: {
-            userId: req.user?.id,
+            userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
         },
         include: {
             driver: true,
@@ -208,5 +209,5 @@ const getAllRides = async (req, res) => {
     res.status(201).json({
         rides,
     });
-};
+});
 exports.getAllRides = getAllRides;
