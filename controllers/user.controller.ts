@@ -8,6 +8,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 import { sendOTPtoMail } from "../utils/nylas-email-otp";
+import { ObjectId } from 'mongodb';
 
 // register new user
 export const registerUser = async (
@@ -218,3 +219,68 @@ export const getAllRides = async (req: any, res: Response) => {
     rides,
   });
 };
+
+export const storeToken = async (req: any, res: Response) => {
+  try {
+    const deviceId = req.user?.id;
+    const pushToken = req.data.pushToken;
+
+    if (!deviceId || !pushToken) {
+      return res.status(400).json({ success: false, message: "Missing deviceId or pushToken" });
+    }
+
+    const existingToken = await prisma.token.findFirst({
+      where: {
+        deviceId: deviceId, // Assuming `deviceId` is stored as a string
+      },
+    });
+
+    let token;
+    if (existingToken) {
+      token = await prisma.token.update({
+        where: { id: existingToken.id }, // Use the unique `id`
+        data: {
+          token: pushToken,
+          updatedAt: new Date(), // Automatically updated by @updatedAt, but explicit for clarity
+        },
+      });
+    } else {
+      token = await prisma.token.create({
+        data: {
+          id: new ObjectId().toString(), // Ensuring it's a valid ObjectId string
+          deviceId: deviceId,
+          token: pushToken,
+        },
+      });
+    }
+
+    console.log("Stored Token:", token);
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error("Error storing token:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const getToken = async (req: any, res: Response) => {
+  try {
+    console.log("Fetching token for deviceId:", req.data.driverId);
+
+    const token = await prisma.token.findFirst({
+      where: {
+        deviceId: req.data.driverId, // ✅ Ensuring deviceId is passed correctly
+      },
+    });
+
+    if (!token) {
+      console.warn(`No token found for deviceId: ${req.data.driverId}`);
+      return res.status(404).json({ success: false, message: "Token not found" });
+    }
+
+    console.log("Retrieved Token:", token);
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error("Error retrieving token:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}

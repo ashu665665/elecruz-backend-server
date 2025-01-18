@@ -13,13 +13,14 @@
   "author": "elecruz-server",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.1.0",
+    "@prisma/client": "^6.2.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "ip": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.12.0",
     "ts-node-dev": "^2.0.0",
     "twilio": "^5.2.2",
     "typescript": "^5.5.4"
