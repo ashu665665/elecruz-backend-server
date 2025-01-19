@@ -26,7 +26,7 @@ userRouter.get("/me", isAuthenticated, getLoggedInUserData);
 
 userRouter.get("/get-rides", isAuthenticated, getAllRides);
 
-userRouter.post("/user/pushToken", isAuthenticated, testApi);
+userRouter.post("/pushToken", testApi);
 
 userRouter.post("/user/getDriverToken", isAuthenticated, getToken);
 
