@@ -285,3 +285,7 @@ export const getToken = async (req: any, res: Response) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
+
+export const testApi = async (req: any, res: Response) => {
+  res.status(200).json({ success: true });
+}

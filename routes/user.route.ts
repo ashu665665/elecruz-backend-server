@@ -7,7 +7,8 @@ import {
   verifyingEmail,
   verifyOtp,
   storeToken,
-  getToken
+  getToken,
+  testApi
 } from "../controllers/user.controller";
 import { isAuthenticated } from "../middleware/isAuthenticated";
 
@@ -25,7 +26,7 @@ userRouter.get("/me", isAuthenticated, getLoggedInUserData);
 
 userRouter.get("/get-rides", isAuthenticated, getAllRides);
 
-userRouter.post("/user/pushToken", isAuthenticated, storeToken);
+userRouter.post("/user/pushToken", isAuthenticated, testApi);
 
 userRouter.post("/user/getDriverToken", isAuthenticated, getToken);
 
