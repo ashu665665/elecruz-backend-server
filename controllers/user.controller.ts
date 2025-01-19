@@ -222,6 +222,7 @@ export const getAllRides = async (req: any, res: Response) => {
 
 export const storeToken = async (req: any, res: Response) => {
   try {
+    console.log(`Storing Token`);
     const deviceId = req.user?.id;
     const pushToken = req.data.pushToken;
 

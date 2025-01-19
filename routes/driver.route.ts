@@ -41,8 +41,8 @@ driverRouter.put(
 
 driverRouter.get("/get-rides", isAuthenticatedDriver, getAllRides);
 
-driverRouter.post("/driver/pushToken", isAuthenticatedDriver, storeToken);
+driverRouter.post("/pushToken", isAuthenticatedDriver, storeToken);
 
-driverRouter.post("/driver/getUserToken", isAuthenticatedDriver, getToken);
+driverRouter.post("/getUserToken", isAuthenticatedDriver, getToken);
 
 export default driverRouter;
